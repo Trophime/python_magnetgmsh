@@ -55,17 +55,23 @@ def gmsh_ids(
     x = Bitter.r[0]
     dr = Bitter.r[1] - Bitter.r[0]
     y = -Bitter.axi.h
-    if Bitter.z[0] < y:
+    # print("y=", y)
+    tol = 1e-10
+    if abs(y - Bitter.z[0]) >= tol:
         _id = gmsh.model.occ.addRectangle(x, Bitter.z[0], 0, dr, abs(y - Bitter.z[0]))
         gmsh_ids.append(_id)
+
+    # print("gmsh_ids=", gmsh_ids)
 
     for i, (n, pitch) in enumerate(zip(Bitter.axi.turns, Bitter.axi.pitch)):
         dz = n * pitch
         _id = gmsh.model.occ.addRectangle(x, y, 0, dr, dz)
         gmsh_ids.append(_id)
         y += dz
+        # print("(n=", n, " pitch=", pitch, ")dz=", dz, " gmsh_ids=", gmsh_ids, " y=", y)
 
-    if Bitter.z[1] > y:
+    if abs(y - Bitter.z[1]) >= tol:
+        # print("abs(y - Bitter.z[1])=", abs(y - Bitter.z[1]))
         _id = gmsh.model.occ.addRectangle(x, y, 0, dr, abs(y - Bitter.z[1]))
         gmsh_ids.append(_id)
     gmsh.model.occ.synchronize()
@@ -165,6 +171,8 @@ def gmsh_bcs(
     )
 
     psnames = Bitter.get_names(mname, is2D=True, verbose=debug)
+    # print(psnames)
+    # print(flatten(B_ids))
     assert len(flatten(B_ids)) == len(
         psnames
     ), f"Bitter/gmsh_bcs {Bitter.name}: trouble with psnames (expected {len(psnames)} got {len(flatten(B_ids))})"
